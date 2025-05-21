@@ -2,363 +2,146 @@
 <html lang="da">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Timelønsberegner & Vagtregistrering</title>
+  <title>Vagtregistrering og Løn</title>
   <style>
     body {
+      background-color: #121212;
+      color: white;
       font-family: Arial, sans-serif;
-      margin: 20px;
     }
-    nav {
-      margin-bottom: 20px;
+    input, select, button {
+      margin: 5px;
+      padding: 5px;
     }
-    nav button {
-      margin-right: 10px;
-      padding: 10px 15px;
-      cursor: pointer;
-    }
-    section {
-      display: none;
-    }
-    section.active {
-      display: block;
-    }
-    label {
-      display: block;
+    table {
+      width: 100%;
+      border-collapse: collapse;
       margin-top: 10px;
     }
-    input[type="number"], input[type="date"], select {
+    th, td {
+      border: 1px solid #444;
       padding: 5px;
-      width: 150px;
+      text-align: center;
     }
-    button.deleteBtn {
-      background-color: #d9534f;
+    .red-btn {
+      background-color: red;
       color: white;
       border: none;
       padding: 5px 10px;
-      cursor: pointer;
-    }
-    button#rydVagter {
-      background-color: #d9534f;
-      color: white;
-      border: none;
-      padding: 8px 12px;
-      margin-top: 10px;
-      cursor: pointer;
     }
   </style>
 </head>
 <body>
 
-  <nav>
-    <button id="btnBeregner">Timelønsberegner</button>
-    <button id="btnVagt">Vagtregistrering</button>
-  </nav>
+  <h2>Vagtregistrering</h2>
 
-  <section id="beregner" class="active">
-    <h2>Timelønsberegner</h2>
-    <label>Timeløn (kr):
-      <input type="number" id="timelon" min="0" step="0.01" />
-    </label>
-    <label>Timer arbejdet:
-      <input type="number" id="timer" min="0" step="0.01" />
-    </label>
-    <label>Arbejdmarkedsbidrag (AMB) %:
-      <input type="number" id="amb" min="0" max="100" step="0.01" value="8" />
-    </label>
-    <label>Skat %:
-      <input type="number" id="skat" min="0" max="100" step="0.01" value="37" />
-    </label>
-    <label>Tillæg pr. time (kr):
-      <input type="number" id="tillaeg" min="0" step="0.01" value="0" />
-    </label>
-    <button id="beregnBtn">Beregn</button>
-    <div id="resultat" style="margin-top:20px; font-weight:bold;"></div>
-  </section>
-
-  <section id="vagtSection">
-    <h2>Vagtregistrering</h2>
-
-    <label>Dato:
-      <input type="date" id="datoVagt" />
-    </label>
-    <label>Timer totalt:
-      <input type="number" id="timerVagt" min="0" step="0.01" />
-    </label>
-    <label for="medTillaeg">Med tillæg?</label>
+  <label>Dato: <input type="date" id="dato" /></label><br />
+  <label>Timer totalt: <input type="number" id="timer" /></label><br />
+  <label>Med tillæg? 
     <select id="medTillaeg">
-      <option value="nej" selected>Nej</option>
-      <option value="ja">Ja</option>
+      <option>Ja</option>
+      <option>Nej</option>
     </select>
-    <label for="timerTillaeg" id="labelTimerTillaeg" style="display:none; margin-top:10px;">Timer med tillæg:</label>
-    <input type="number" id="timerTillaeg" min="0" step="0.01" placeholder="Fx 3" style="display:none;" />
+  </label><br />
+  <label>Timer med tillæg: <input type="number" id="timerMedTillaeg" /></label><br />
+  <button onclick="tilfoejVagt()">Tilføj vagt</button>
+  <button class="red-btn" onclick="rydVagter()">Ryd alle vagter</button>
 
-    <button id="tilfoejVagt" style="margin-top:10px;">Tilføj vagt</button>
-    <button id="rydVagter">Ryd alle vagter</button>
+  <h3>Vagter</h3>
+  <table id="vagtTabel">
+    <tr>
+      <th>Dato</th>
+      <th>Timer totalt</th>
+      <th>Med tillæg</th>
+      <th>Timer med tillæg</th>
+      <th>Slet</th>
+    </tr>
+  </table>
 
-    <h3>Vagter</h3>
-    <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%; margin-top:10px;">
-      <thead>
+  <p id="opsummering"></p>
+
+  <label>Timeløn (kr): <input type="number" id="timeloen" value="74" /></label><br />
+  <label>Tillæg pr. time (kr): <input type="number" id="tillaeg" value="20" /></label><br />
+  <label>Arbejdsmarkedsbidrag (AMB) %: <input type="number" id="amb" value="8" /></label><br />
+  <label>Skat %: <input type="number" id="skat" value="0" /></label><br />
+
+  <script>
+    let vagter = [];
+
+    function tilfoejVagt() {
+      const dato = document.getElementById("dato").value;
+      const timer = parseFloat(document.getElementById("timer").value);
+      const medTillaeg = document.getElementById("medTillaeg").value === "Ja";
+      const timerMedTillaeg = parseFloat(document.getElementById("timerMedTillaeg").value) || 0;
+
+      if (!dato || isNaN(timer)) {
+        alert("Udfyld både dato og timer.");
+        return;
+      }
+
+      if (medTillaeg && timerMedTillaeg > timer) {
+        alert("Timer med tillæg kan ikke være mere end samlet timer.");
+        return;
+      }
+
+      vagter.push({ dato, timer, medTillaeg, timerMedTillaeg });
+      opdaterVagter();
+    }
+
+    function sletVagt(index) {
+      vagter.splice(index, 1);
+      opdaterVagter();
+    }
+
+    function rydVagter() {
+      vagter = [];
+      opdaterVagter();
+    }
+
+    function opdaterVagter() {
+      const tabel = document.getElementById("vagtTabel");
+      tabel.innerHTML = `
         <tr>
           <th>Dato</th>
           <th>Timer totalt</th>
           <th>Med tillæg</th>
           <th>Timer med tillæg</th>
           <th>Slet</th>
-        </tr>
-      </thead>
-      <tbody id="vagtTabelBody">
-      </tbody>
-    </table>
+        </tr>`;
 
-    <div id="totalTimerLøn" style="margin-top:20px; font-weight:bold;"></div>
+      let totalTimer = 0;
+      let totalTimerMedTillaeg = 0;
 
-    <label>Timeløn (kr):
-      <input type="number" id="timelonVagt" min="0" step="0.01" />
-    </label>
-    <label>Tillæg pr. time (kr):
-      <input type="number" id="tillaegVagt" min="0" step="0.01" value="0" />
-    </label>
-    <label>Arbejdmarkedsbidrag (AMB) %:
-      <input type="number" id="ambVagt" min="0" max="100" step="0.01" value="8" />
-    </label>
-    <label>Skat %:
-      <input type="number" id="skatVagt" min="0" max="100" step="0.01" value="37" />
-    </label>
-  </section>
+      vagter.forEach((vagt, index) => {
+        totalTimer += vagt.timer;
+        totalTimerMedTillaeg += vagt.medTillaeg ? vagt.timerMedTillaeg : 0;
 
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      // Navigation mellem faner
-      const btnBeregner = document.getElementById("btnBeregner");
-      const btnVagt = document.getElementById("btnVagt");
-      const beregnerSection = document.getElementById("beregner");
-      const vagtSection = document.getElementById("vagtSection");
-
-      btnBeregner.addEventListener("click", () => {
-        beregnerSection.classList.add("active");
-        vagtSection.classList.remove("active");
-      });
-      btnVagt.addEventListener("click", () => {
-        beregnerSection.classList.remove("active");
-        vagtSection.classList.add("active");
-      });
-
-      // Timelønsberegner
-      const timelon = document.getElementById("timelon");
-      const timer = document.getElementById("timer");
-      const amb = document.getElementById("amb");
-      const skat = document.getElementById("skat");
-      const tillaeg = document.getElementById("tillaeg");
-      const beregnBtn = document.getElementById("beregnBtn");
-      const resultat = document.getElementById("resultat");
-
-      beregnBtn.addEventListener("click", () => {
-        const tl = parseFloat(timelon.value);
-        const tm = parseFloat(timer.value);
-        const am = parseFloat(amb.value) || 0;
-        const sk = parseFloat(skat.value) || 0;
-        const ti = parseFloat(tillaeg.value) || 0;
-
-        if (isNaN(tl) || isNaN(tm) || tm < 0 || tl < 0) {
-          resultat.textContent = "Indtast gyldige værdier for timeløn og timer.";
-          return;
-        }
-
-        const brutto = tm * (tl + ti);
-        const efterAMB = brutto * (1 - am / 100);
-        const efterSkat = efterAMB * (1 - sk / 100);
-
-        resultat.innerHTML = `
-          Bruttoløn: ${brutto.toFixed(2)} kr.<br>
-          Efter AM-bidrag (${am}%): ${efterAMB.toFixed(2)} kr.<br>
-          Efter skat (${sk}%): <strong>${efterSkat.toFixed(2)} kr.</strong>
+        const row = tabel.insertRow();
+        row.innerHTML = `
+          <td>${vagt.dato}</td>
+          <td>${vagt.timer}</td>
+          <td>${vagt.medTillaeg ? "Ja" : "Nej"}</td>
+          <td>${vagt.medTillaeg ? vagt.timerMedTillaeg : 0}</td>
+          <td><button onclick="sletVagt(${index})">Slet</button></td>
         `;
       });
 
-      // Vagtregistrering
-      const datoInput = document.getElementById("datoVagt");
-      const timerVagtInput = document.getElementById("timerVagt");
-      const medTillaegSelect = document.getElementById("medTillaeg");
-      const timerTillaegInput = document.getElementById("timerTillaeg");
-      const labelTimerTillaeg = document.getElementById("labelTimerTillaeg");
-      const tilfoejVagtBtn = document.getElementById("tilfoejVagt");
-      const vagtTabelBody = document.getElementById("vagtTabelBody");
-      const totalTimerLønDiv = document.getElementById("totalTimerLøn");
-      const rydVagterBtn = document.getElementById("rydVagter");
+      const timeloen = parseFloat(document.getElementById("timeloen").value) || 0;
+      const tillaeg = parseFloat(document.getElementById("tillaeg").value) || 0;
+      const amb = parseFloat(document.getElementById("amb").value) || 0;
+      const skat = parseFloat(document.getElementById("skat").value) || 0;
 
-      const timelonInput = document.getElementById("timelonVagt");
-      const tillaegInput = document.getElementById("tillaegVagt");
-      const ambInput = document.getElementById("ambVagt");
-      const skatInput = document.getElementById("skatVagt");
+      const brutto = (totalTimer * timeloen) + (totalTimerMedTillaeg * tillaeg);
+      const efterAMB = brutto * (1 - amb / 100);
+      const efterSkat = efterAMB * (1 - skat / 100);
 
-      let vagter = [];
-
-      // Vis/skjul timer med tillæg input
-      medTillaegSelect.addEventListener("change", () => {
-        if (medTillaegSelect.value === "ja") {
-          timerTillaegInput.style.display = "block";
-          labelTimerTillaeg.style.display = "block";
-        } else {
-          timerTillaegInput.style.display = "none";
-          labelTimerTillaeg.style.display = "none";
-          timerTillaegInput.value = "";
-        }
-      });
-
-      function opdaterVagtTabel() {
-        vagtTabelBody.innerHTML = "";
-        vagter.forEach((vagt, index) => {
-          const tr = document.createElement("tr");
-
-          const tdDato = document.createElement("td");
-          tdDato.textContent = vagt.dato;
-          tr.appendChild(tdDato);
-
-          const tdTimer = document.createElement("td");
-          tdTimer.textContent = vagt.timer.toFixed(2);
-          tr.appendChild(tdTimer);
-
-          const tdMedTillaeg = document.createElement("td");
-          tdMedTillaeg.textContent = vagt.medTillaeg ? "Ja" : "Nej";
-          tr.appendChild(tdMedTillaeg);
-
-          const tdTimerTillaeg = document.createElement("td");
-          tdTimerTillaeg.textContent = vagt.medTillaeg ? vagt.timerMedTillaeg.toFixed(2) : "-";
-          tr.appendChild(tdTimerTillaeg);
-
-          const tdSlet = document.createElement("td");
-          const sletBtn = document.createElement("button");
-          sletBtn.textContent = "Slet";
-          sletBtn.className = "deleteBtn";
-          sletBtn.addEventListener("click", () => {
-            vagter.splice(index, 1);
-            opdaterVagtTabel();
-            opdaterTotal();
-            gemData();
-          });
-          tdSlet.appendChild(sletBtn);
-          tr.appendChild(tdSlet);
-
-          vagtTabelBody.appendChild(tr);
-        });
-      }
-
-      function opdaterTotal() {
-        const timelon = parseFloat(timelonInput.value);
-        const tillaeg = parseFloat(tillaegInput.value) || 0;
-        const amb = ambInput.value.trim() === "" ? 8 : parseFloat(ambInput.value);
-        const skat = skatInput.value.trim() === "" ? 37 : parseFloat(skatInput.value);
-
-        if (isNaN(timelon)) {
-          totalTimerLønDiv.textContent = "Indtast en gyldig timeløn i beregneren for at se totals.";
-          return;
-        }
-
-        let totalTimer = 0;
-        let totalBrutto = 0;
-
-        vagter.forEach(vagt => {
-          totalTimer += vagt.timer;
-          if (vagt.medTillaeg) {
-            const udenTillægTimer = vagt.timer - vagt.timerMedTillaeg;
-            totalBrutto += udenTillægTimer * timelon;
-            totalBrutto += vagt.timerMedTillaeg * (timelon + tillaeg);
-          } else {
-            totalBrutto += vagt.timer * timelon;
-          }
-        });
-
-        const efterAMB = totalBrutto * (1 - amb / 100);
-        const efterSkat = efterAMB * (1 - skat / 100);
-
-        totalTimerLønDiv.innerHTML = `
-          Total arbejdstimer: ${totalTimer.toFixed(2)}<br>
-          Bruttoløn: ${totalBrutto.toFixed(2)} kr.<br>
-          Efter AM-bidrag (${amb}%): ${efterAMB.toFixed(2)} kr.<br>
-          Efter skat (${skat}%): <strong>${efterSkat.toFixed(2)} kr.</strong>
-        `;
-      }
-
-      function gemData() {
-        localStorage.setItem("vagter", JSON.stringify(vagter));
-        localStorage.setItem("timelonVagt", timelonInput.value);
-        localStorage.setItem("tillaegVagt", tillaegInput.value);
-        localStorage.setItem("ambVagt", ambInput.value);
-        localStorage.setItem("skatVagt", skatInput.value);
-      }
-
-      function hentData() {
-        const data = localStorage.getItem("vagter");
-        if (data) {
-          vagter = JSON.parse(data);
-        } else {
-          vagter = [];
-        }
-        timelonInput.value = localStorage.getItem("timelonVagt") || "";
-        tillaegInput.value = localStorage.getItem("tillaegVagt") || "0";
-        ambInput.value = localStorage.getItem("ambVagt") || "8";
-        skatInput.value = localStorage.getItem("skatVagt") || "37";
-
-        opdaterVagtTabel();
-        opdaterTotal();
-      }
-
-      tilfoejVagtBtn.addEventListener("click", () => {
-        const dato = datoInput.value;
-        const timer = parseFloat(timerVagtInput.value);
-        const medTillaeg = medTillaegSelect.value === "ja";
-        const timerMedTillaeg = parseFloat(timerTillaegInput.value) || 0;
-
-        if (!dato) {
-          alert("Indtast venligst en dato.");
-          return;
-        }
-        if (isNaN(timer) || timer <= 0) {
-          alert("Indtast venligst et gyldigt antal timer.");
-          return;
-        }
-        if (medTillaeg && (isNaN(timerMedTillaeg) || timerMedTillaeg <= 0)) {
-          alert("Indtast venligst antal timer med tillæg.");
-          return;
-        }
-        if (medTillaeg && timerMedTillaeg > timer) {
-          alert("Timer med tillæg kan ikke være større end det totale antal timer.");
-          return;
-        }
-
-        vagter.push({ dato, timer, medTillaeg, timerMedTillaeg });
-        opdaterVagtTabel();
-        opdaterTotal();
-        gemData();
-
-        // Nulstil input
-        datoInput.value = "";
-        timerVagtInput.value = "";
-        medTillaegSelect.value = "nej";
-        timerTillaegInput.value = "";
-        timerTillaegInput.style.display = "none";
-        labelTimerTillaeg.style.display = "none";
-      });
-
-      rydVagterBtn.addEventListener("click", () => {
-        if (confirm("Er du sikker på du vil slette alle vagter?")) {
-          vagter = [];
-          opdaterVagtTabel();
-          opdaterTotal();
-          gemData();
-        }
-      });
-
-      [timelonInput, tillaegInput, ambInput, skatInput].forEach(el => {
-        el.addEventListener("input", () => {
-          gemData();
-          opdaterTotal();
-        });
-      });
-
-      hentData();
-    });
+      document.getElementById("opsummering").innerHTML = `
+        <strong>Total arbejdstimer:</strong> ${totalTimer.toFixed(2)}<br />
+        <strong>Bruttoløn:</strong> ${brutto.toFixed(2)} kr.<br />
+        <strong>Efter AM-bidrag (${amb}%):</strong> ${efterAMB.toFixed(2)} kr.<br />
+        <strong>Efter skat (${skat}%):</strong> ${efterSkat.toFixed(2)} kr.
+      `;
+    }
   </script>
 
 </body>
