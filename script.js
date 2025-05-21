@@ -26,29 +26,34 @@
   window.addEventListener("DOMContentLoaded", hentData);
 
   // Beregn løn
-  document.getElementById("beregn").addEventListener("click", function () {
-    const timer = parseFloat(timerInput.value);
-    const timelon = parseFloat(timelonInput.value);
-    const amb = parseFloat(ambInput.value) || 8;
-    const skat = parseFloat(skatInput.value) || 37;
+ document.getElementById("beregn").addEventListener("click", function () {
+  const timer = parseFloat(timerInput.value);
+  const timelon = parseFloat(timelonInput.value);
+  const amb = parseFloat(ambInput.value);
+  const skat = parseFloat(skatInput.value);
 
-    if (isNaN(timer) || isNaN(timelon)) {
-      resultatDiv.textContent = "Indtast gyldige værdier for timer og timeløn.";
-      return;
-    }
+  if (isNaN(timer) || isNaN(timelon)) {
+    resultatDiv.textContent = "Indtast gyldige værdier for timer og timeløn.";
+    return;
+  }
 
-    const bruttolon = timer * timelon;
-    const efterAMB = bruttolon * (1 - amb / 100);
-    const efterSkat = efterAMB * (1 - skat / 100);
+  // Brug 0 hvis skat eller amb er tomt, men accepter 0 som gyldigt input
+  const ambProcent = isNaN(amb) ? 8 : amb;
+  const skatProcent = isNaN(skat) ? 37 : skat;
 
-    resultatDiv.innerHTML = `
-      Bruttoløn: ${bruttolon.toFixed(2)} kr.<br>
-      Efter AM-bidrag (${amb}%): ${efterAMB.toFixed(2)} kr.<br>
-      Efter skat (${skat}%): <strong>${efterSkat.toFixed(2)} kr.</strong>
-    `;
+  const bruttolon = timer * timelon;
+  const efterAMB = bruttolon * (1 - ambProcent / 100);
+  const efterSkat = efterAMB * (1 - skatProcent / 100);
 
-    gemData();
-  });
+  resultatDiv.innerHTML = `
+    Bruttoløn: ${bruttolon.toFixed(2)} kr.<br>
+    Efter AM-bidrag (${ambProcent}%): ${efterAMB.toFixed(2)} kr.<br>
+    Efter skat (${skatProcent}%): <strong>${efterSkat.toFixed(2)} kr.</strong>
+  `;
+
+  gemData();
+});
+
 
   // Ryd alt-knap
   document.getElementById("ryd").addEventListener("click", function () {
