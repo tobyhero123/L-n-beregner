@@ -14,3 +14,34 @@ button {
   font-size: 16px;
   cursor: pointer;
 }
+
+/* Mobile first - basis styling som før */
+
+@media (max-width: 600px) {
+  body {
+    margin: 10px;
+    padding: 10px;
+  }
+  input, select, button.action {
+    width: 100% !important;
+    font-size: 18px;
+    box-sizing: border-box;
+  }
+  nav button {
+    width: 48%;
+    margin: 1% 1% 10px 1%;
+    font-size: 18px;
+  }
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    font-size: 14px;
+  }
+  th, td {
+    padding: 8px;
+  }
+  #resultat, #totalTimerLøn {
+    font-size: 16px;
+  }
+}
