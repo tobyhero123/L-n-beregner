@@ -2,70 +2,136 @@
 <html lang="da">
 <head>
   <meta charset="UTF-8" />
-  <title>Vagtregistrering og Løn</title>
+  <title>Timeløn & Vagtregistrering</title>
   <style>
     body {
-      background-color: #121212;
-      color: white;
+      background-color: #fff;
+      color: #000;
       font-family: Arial, sans-serif;
+      padding: 20px;
     }
-    input, select, button {
+    button, input, select {
       margin: 5px;
-      padding: 5px;
+      padding: 6px;
+    }
+    .tab-btn {
+      background-color: #eee;
+      border: 1px solid #ccc;
+      padding: 8px 16px;
+      cursor: pointer;
+    }
+    .tab-btn.active {
+      background-color: #ccc;
+    }
+    .tab-content {
+      display: none;
+      margin-top: 20px;
+    }
+    .tab-content.active {
+      display: block;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 10px;
+      margin-top: 15px;
     }
     th, td {
-      border: 1px solid #444;
-      padding: 5px;
+      border: 1px solid #ccc;
+      padding: 6px;
       text-align: center;
     }
     .red-btn {
       background-color: red;
       color: white;
       border: none;
-      padding: 5px 10px;
+      padding: 6px 10px;
     }
   </style>
 </head>
 <body>
 
-  <h2>Vagtregistrering</h2>
+  <button class="tab-btn active" onclick="skiftFane('beregner')">Timelønsberegner</button>
+  <button class="tab-btn" onclick="skiftFane('vagt')">Vagtregistrering</button>
 
-  <label>Dato: <input type="date" id="dato" /></label><br />
-  <label>Timer totalt: <input type="number" id="timer" /></label><br />
-  <label>Med tillæg? 
-    <select id="medTillaeg">
-      <option>Ja</option>
-      <option>Nej</option>
-    </select>
-  </label><br />
-  <label>Timer med tillæg: <input type="number" id="timerMedTillaeg" /></label><br />
-  <button onclick="tilfoejVagt()">Tilføj vagt</button>
-  <button class="red-btn" onclick="rydVagter()">Ryd alle vagter</button>
+  <!-- Timelønsberegner -->
+  <div id="beregner" class="tab-content active">
+    <h2>Timelønsberegner</h2>
+    <label>Timer: <input type="number" id="timerBeregner" /></label><br />
+    <label>Timeløn (kr): <input type="number" id="loenBeregner" value="74" /></label><br />
+    <label>Tillæg pr. time (kr): <input type="number" id="tillaegBeregner" value="20" /></label><br />
+    <label>Timer med tillæg: <input type="number" id="tillaegTimerBeregner" /></label><br />
+    <label>Arbejdsmarkedsbidrag (AMB) %: <input type="number" id="ambBeregner" value="8" /></label><br />
+    <label>Skat %: <input type="number" id="skatBeregner" value="0" /></label><br />
+    <button onclick="beregnLoen()">Beregn</button>
 
-  <h3>Vagter</h3>
-  <table id="vagtTabel">
-    <tr>
-      <th>Dato</th>
-      <th>Timer totalt</th>
-      <th>Med tillæg</th>
-      <th>Timer med tillæg</th>
-      <th>Slet</th>
-    </tr>
-  </table>
+    <p id="resultatBeregner"></p>
+  </div>
 
-  <p id="opsummering"></p>
+  <!-- Vagtregistrering -->
+  <div id="vagt" class="tab-content">
+    <h2>Vagtregistrering</h2>
 
-  <label>Timeløn (kr): <input type="number" id="timeloen" value="74" /></label><br />
-  <label>Tillæg pr. time (kr): <input type="number" id="tillaeg" value="20" /></label><br />
-  <label>Arbejdsmarkedsbidrag (AMB) %: <input type="number" id="amb" value="8" /></label><br />
-  <label>Skat %: <input type="number" id="skat" value="0" /></label><br />
+    <label>Dato: <input type="date" id="dato" /></label><br />
+    <label>Timer totalt: <input type="number" id="timer" /></label><br />
+    <label>Med tillæg? 
+      <select id="medTillaeg">
+        <option>Ja</option>
+        <option>Nej</option>
+      </select>
+    </label><br />
+    <label>Timer med tillæg: <input type="number" id="timerMedTillaeg" /></label><br />
+    <button onclick="tilfoejVagt()">Tilføj vagt</button>
+    <button class="red-btn" onclick="rydVagter()">Ryd alle vagter</button>
+
+    <h3>Vagter</h3>
+    <table id="vagtTabel">
+      <tr>
+        <th>Dato</th>
+        <th>Timer totalt</th>
+        <th>Med tillæg</th>
+        <th>Timer med tillæg</th>
+        <th>Slet</th>
+      </tr>
+    </table>
+
+    <p id="opsummering"></p>
+
+    <label>Timeløn (kr): <input type="number" id="timeloen" value="74" /></label><br />
+    <label>Tillæg pr. time (kr): <input type="number" id="tillaeg" value="20" /></label><br />
+    <label>Arbejdsmarkedsbidrag (AMB) %: <input type="number" id="amb" value="8" /></label><br />
+    <label>Skat %: <input type="number" id="skat" value="0" /></label><br />
+  </div>
 
   <script>
+    // Fane-skifter
+    function skiftFane(id) {
+      document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
+      document.querySelectorAll(".tab-content").forEach(tab => tab.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+      event.target.classList.add("active");
+    }
+
+    // Beregner
+    function beregnLoen() {
+      const timer = parseFloat(document.getElementById("timerBeregner").value) || 0;
+      const loen = parseFloat(document.getElementById("loenBeregner").value) || 0;
+      const tillaeg = parseFloat(document.getElementById("tillaegBeregner").value) || 0;
+      const tillaegTimer = parseFloat(document.getElementById("tillaegTimerBeregner").value) || 0;
+      const amb = parseFloat(document.getElementById("ambBeregner").value) || 0;
+      const skat = parseFloat(document.getElementById("skatBeregner").value) || 0;
+
+      const brutto = (timer * loen) + (tillaegTimer * tillaeg);
+      const efterAMB = brutto * (1 - amb / 100);
+      const efterSkat = efterAMB * (1 - skat / 100);
+
+      document.getElementById("resultatBeregner").innerHTML = `
+        Bruttoløn: ${brutto.toFixed(2)} kr.<br />
+        Efter AM-bidrag (${amb}%): ${efterAMB.toFixed(2)} kr.<br />
+        Efter skat (${skat}%): ${efterSkat.toFixed(2)} kr.
+      `;
+    }
+
+    // Vagtlogik
     let vagter = [];
 
     function tilfoejVagt() {
@@ -110,11 +176,11 @@
         </tr>`;
 
       let totalTimer = 0;
-      let totalTimerMedTillaeg = 0;
+      let totalTillaegTimer = 0;
 
       vagter.forEach((vagt, index) => {
         totalTimer += vagt.timer;
-        totalTimerMedTillaeg += vagt.medTillaeg ? vagt.timerMedTillaeg : 0;
+        totalTillaegTimer += vagt.medTillaeg ? vagt.timerMedTillaeg : 0;
 
         const row = tabel.insertRow();
         row.innerHTML = `
@@ -131,7 +197,7 @@
       const amb = parseFloat(document.getElementById("amb").value) || 0;
       const skat = parseFloat(document.getElementById("skat").value) || 0;
 
-      const brutto = (totalTimer * timeloen) + (totalTimerMedTillaeg * tillaeg);
+      const brutto = (totalTimer * timeloen) + (totalTillaegTimer * tillaeg);
       const efterAMB = brutto * (1 - amb / 100);
       const efterSkat = efterAMB * (1 - skat / 100);
 
