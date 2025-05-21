@@ -6,16 +6,21 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      max-width: 400px;
+      max-width: 500px;
       margin: 50px auto;
-      padding: 10px;
-      background-color: #f5f5f5;
-      border-radius: 8px;
-      text-align: center;
+      padding: 20px;
+      background-color: #f9f9f9;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
     }
     input {
       padding: 8px;
-      margin: 8px 0;
+      margin-top: 4px;
       width: 100%;
       box-sizing: border-box;
       font-size: 16px;
@@ -23,10 +28,10 @@
     button {
       padding: 10px 20px;
       font-size: 16px;
-      cursor: pointer;
-      margin-top: 10px;
+      margin-top: 15px;
       border: none;
       border-radius: 5px;
+      cursor: pointer;
     }
     #beregn {
       background-color: #007acc;
@@ -41,23 +46,33 @@
       margin-top: 20px;
       font-weight: bold;
       font-size: 18px;
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
     }
   </style>
 </head>
 <body>
+
   <h1>Timelønsberegner</h1>
 
-  <label for="timer">Antal timer:</label>
-  <input type="number" id="timer" min="0" step="0.1" placeholder="Fx 37" />
+  <label for="timerUden">Timer uden tillæg:</label>
+  <input type="number" id="timerUden" min="0" step="0.1" placeholder="Fx 5" />
+
+  <label for="timerMed">Timer med tillæg:</label>
+  <input type="number" id="timerMed" min="0" step="0.1" placeholder="Fx 2" />
 
   <label for="timelon">Timeløn (kr.):</label>
   <input type="number" id="timelon" min="0" step="0.01" placeholder="Fx 150" />
+
+  <label for="tillaeg">Tillæg pr. time (kr.):</label>
+  <input type="number" id="tillaeg" min="0" step="0.01" placeholder="Fx 20" />
 
   <label for="amb">Arbejdsmarkedsbidrag (%):</label>
   <input type="number" id="amb" min="0" max="100" step="0.1" placeholder="Fx 8" />
 
   <label for="skat">Skatteprocent (%):</label>
-  <input type="number" id="skat" min="0" max="100" step="0.1" placeholder="Fx 37 (skriv 0, hvis du ikke vil renge skat med)" />
+  <input type="number" id="skat" min="0" max="100" step="0.1" placeholder="Fx 37 eller 0" />
 
   <div>
     <button id="beregn">Beregn løn efter skat</button>
@@ -68,8 +83,10 @@
 
   <script>
     window.addEventListener("DOMContentLoaded", function () {
-      const timerInput = document.getElementById("timer");
+      const timerUdenInput = document.getElementById("timerUden");
+      const timerMedInput = document.getElementById("timerMed");
       const timelonInput = document.getElementById("timelon");
+      const tillaegInput = document.getElementById("tillaeg");
       const ambInput = document.getElementById("amb");
       const skatInput = document.getElementById("skat");
       const resultatDiv = document.getElementById("resultat");
@@ -77,41 +94,48 @@
       const rydBtn = document.getElementById("ryd");
 
       function gemData() {
-        localStorage.setItem("timer", timerInput.value);
+        localStorage.setItem("timerUden", timerUdenInput.value);
+        localStorage.setItem("timerMed", timerMedInput.value);
         localStorage.setItem("timelon", timelonInput.value);
+        localStorage.setItem("tillaeg", tillaegInput.value);
         localStorage.setItem("amb", ambInput.value);
         localStorage.setItem("skat", skatInput.value);
       }
 
       function hentData() {
-        if (localStorage.getItem("timer")) timerInput.value = localStorage.getItem("timer");
+        if (localStorage.getItem("timerUden")) timerUdenInput.value = localStorage.getItem("timerUden");
+        if (localStorage.getItem("timerMed")) timerMedInput.value = localStorage.getItem("timerMed");
         if (localStorage.getItem("timelon")) timelonInput.value = localStorage.getItem("timelon");
+        if (localStorage.getItem("tillaeg")) tillaegInput.value = localStorage.getItem("tillaeg");
         if (localStorage.getItem("amb")) ambInput.value = localStorage.getItem("amb");
         if (localStorage.getItem("skat")) skatInput.value = localStorage.getItem("skat");
       }
 
-      hentData(); // Hent tidligere værdier
+      hentData();
 
       beregnBtn.addEventListener("click", function () {
-        const timer = parseFloat(timerInput.value);
+        const timerUden = parseFloat(timerUdenInput.value) || 0;
+        const timerMed = parseFloat(timerMedInput.value) || 0;
         const timelon = parseFloat(timelonInput.value);
-        const ambStr = ambInput.value.trim();
-        const skatStr = skatInput.value.trim();
+        const tillaeg = parseFloat(tillaegInput.value) || 0;
+        const amb = ambInput.value.trim() === "" ? 8 : parseFloat(ambInput.value);
+        const skat = skatInput.value.trim() === "" ? 37 : parseFloat(skatInput.value);
 
-        if (isNaN(timer) || isNaN(timelon)) {
-          resultatDiv.textContent = "Indtast gyldige værdier for timer og timeløn.";
+        if (isNaN(timelon)) {
+          resultatDiv.textContent = "Indtast en gyldig timeløn.";
           return;
         }
 
-        const amb = ambStr === "" ? 8 : parseFloat(ambStr);
-        const skat = skatStr === "" ? 37 : parseFloat(skatStr);
+        const lonUdenTillaeg = timerUden * timelon;
+        const lonMedTillaeg = timerMed * (timelon + tillaeg);
+        const bruttolon = lonUdenTillaeg + lonMedTillaeg;
 
-        const bruttolon = timer * timelon;
         const efterAMB = bruttolon * (1 - amb / 100);
         const efterSkat = efterAMB * (1 - skat / 100);
 
         resultatDiv.innerHTML = `
           Bruttoløn: ${bruttolon.toFixed(2)} kr.<br>
+          - heraf ${lonUdenTillaeg.toFixed(2)} kr. uden tillæg og ${lonMedTillaeg.toFixed(2)} kr. med tillæg<br>
           Efter AM-bidrag (${amb}%): ${efterAMB.toFixed(2)} kr.<br>
           Efter skat (${skat}%): <strong>${efterSkat.toFixed(2)} kr.</strong>
         `;
@@ -120,8 +144,10 @@
       });
 
       rydBtn.addEventListener("click", function () {
-        timerInput.value = "";
+        timerUdenInput.value = "";
+        timerMedInput.value = "";
         timelonInput.value = "";
+        tillaegInput.value = "";
         ambInput.value = "";
         skatInput.value = "";
         resultatDiv.textContent = "";
