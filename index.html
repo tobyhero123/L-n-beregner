@@ -2,44 +2,67 @@
 <html lang="da">
 <head>
   <meta charset="UTF-8" />
-  <title>Timelønsberegner</title>
+  <title>Timelønsberegner & Vagtregistrering</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      max-width: 500px;
-      margin: 50px auto;
+      max-width: 600px;
+      margin: 30px auto;
       padding: 20px;
-      background-color: #f9f9f9;
+      background: #f9f9f9;
       border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+    }
+    nav {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    nav button {
+      background-color: #007acc;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin: 0 5px;
+      cursor: pointer;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+    nav button.active {
+      background-color: #005fa3;
+    }
+    section {
+      display: none;
+    }
+    section.active {
+      display: block;
     }
     label {
       display: block;
       margin-top: 10px;
       font-weight: bold;
     }
-    input {
+    input, select {
+      width: 100%;
       padding: 8px;
       margin-top: 4px;
-      width: 100%;
+      font-size: 16px;
       box-sizing: border-box;
-      font-size: 16px;
     }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
+    button.action {
       margin-top: 15px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    #beregn {
       background-color: #007acc;
       color: white;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-radius: 5px;
+      font-size: 16px;
     }
-    #ryd {
+    button.action.red {
       background-color: #cc0000;
-      color: white;
       margin-left: 10px;
     }
     #resultat {
@@ -50,39 +73,127 @@
       padding: 15px;
       border-radius: 8px;
     }
+    table {
+      width: 100%;
+      margin-top: 15px;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+      text-align: center;
+    }
+    th {
+      background: #007acc;
+      color: white;
+    }
+    td button.deleteBtn {
+      background-color: #cc0000;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
 
-  <h1>Timelønsberegner</h1>
+  <h1>Timelønsberegner & Vagtregistrering</h1>
 
-  <label for="timerUden">Timer uden tillæg:</label>
-  <input type="number" id="timerUden" min="0" step="0.1" placeholder="Fx 5" />
+  <nav>
+    <button id="tabBeregner" class="active">Timelønsberegner</button>
+    <button id="tabVagt">Vagtregistrering</button>
+  </nav>
 
-  <label for="timerMed">Timer med tillæg:</label>
-  <input type="number" id="timerMed" min="0" step="0.1" placeholder="Fx 2" />
+  <!-- TIMELØNSBEREGNER -->
+  <section id="beregner" class="active">
+    <label for="timerUden">Timer uden tillæg:</label>
+    <input type="number" id="timerUden" min="0" step="0.1" placeholder="Fx 5" />
 
-  <label for="timelon">Timeløn (kr.):</label>
-  <input type="number" id="timelon" min="0" step="0.01" placeholder="Fx 150" />
+    <label for="timerMed">Timer med tillæg:</label>
+    <input type="number" id="timerMed" min="0" step="0.1" placeholder="Fx 2" />
 
-  <label for="tillaeg">Tillæg pr. time (kr.):</label>
-  <input type="number" id="tillaeg" min="0" step="0.01" placeholder="Fx 20" />
+    <label for="timelon">Timeløn (kr.):</label>
+    <input type="number" id="timelon" min="0" step="0.01" placeholder="Fx 150" />
 
-  <label for="amb">Arbejdsmarkedsbidrag (%):</label>
-  <input type="number" id="amb" min="0" max="100" step="0.1" placeholder="Fx 8" />
+    <label for="tillaeg">Tillæg pr. time (kr.):</label>
+    <input type="number" id="tillaeg" min="0" step="0.01" placeholder="Fx 20" />
 
-  <label for="skat">Skatteprocent (%):</label>
-  <input type="number" id="skat" min="0" max="100" step="0.1" placeholder="Fx 37 eller 0" />
+    <label for="amb">Arbejdsmarkedsbidrag (%):</label>
+    <input type="number" id="amb" min="0" max="100" step="0.1" placeholder="Fx 8" />
 
-  <div>
-    <button id="beregn">Beregn løn efter skat</button>
-    <button id="ryd">Ryd alt</button>
-  </div>
+    <label for="skat">Skatteprocent (%):</label>
+    <input type="number" id="skat" min="0" max="100" step="0.1" placeholder="Fx 37 eller 0" />
 
-  <div id="resultat"></div>
+    <div>
+      <button id="beregn" class="action">Beregn løn efter skat</button>
+      <button id="ryd" class="action red">Ryd alt</button>
+    </div>
+
+    <div id="resultat"></div>
+  </section>
+
+  <!-- VAGTREGISTRERING -->
+  <section id="vagt">
+    <label for="dato">Dato for arbejde:</label>
+    <input type="date" id="dato" />
+
+    <label for="timerVagt">Antal timer:</label>
+    <input type="number" id="timerVagt" min="0" step="0.1" placeholder="Fx 5" />
+
+    <label for="medTillaeg">Med tillæg?</label>
+    <select id="medTillaeg">
+      <option value="nej">Nej</option>
+      <option value="ja">Ja</option>
+    </select>
+
+    <button id="tilfoejVagt" class="action">Tilføj vagt</button>
+    <button id="rydVagter" class="action red">Ryd alle vagter</button>
+
+    <table id="vagtTabel">
+      <thead>
+        <tr>
+          <th>Dato</th>
+          <th>Timer</th>
+          <th>Med tillæg</th>
+          <th>Slet</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Dynamisk rækker -->
+      </tbody>
+    </table>
+
+    <div id="totalTimerLøn" style="margin-top: 20px; font-weight: bold; font-size: 18px;"></div>
+  </section>
 
   <script>
     window.addEventListener("DOMContentLoaded", function () {
+      // Tabs
+      const tabBeregner = document.getElementById("tabBeregner");
+      const tabVagt = document.getElementById("tabVagt");
+      const sectionBeregner = document.getElementById("beregner");
+      const sectionVagt = document.getElementById("vagt");
+
+      tabBeregner.addEventListener("click", () => {
+        tabBeregner.classList.add("active");
+        tabVagt.classList.remove("active");
+        sectionBeregner.classList.add("active");
+        sectionVagt.classList.remove("active");
+      });
+
+      tabVagt.addEventListener("click", () => {
+        tabVagt.classList.add("active");
+        tabBeregner.classList.remove("active");
+        sectionVagt.classList.add("active");
+        sectionBeregner.classList.remove("active");
+      });
+
+      // Beregner elementer
       const timerUdenInput = document.getElementById("timerUden");
       const timerMedInput = document.getElementById("timerMed");
       const timelonInput = document.getElementById("timelon");
@@ -93,6 +204,16 @@
       const beregnBtn = document.getElementById("beregn");
       const rydBtn = document.getElementById("ryd");
 
+      // Vagtregistrering elementer
+      const datoInput = document.getElementById("dato");
+      const timerVagtInput = document.getElementById("timerVagt");
+      const medTillaegSelect = document.getElementById("medTillaeg");
+      const tilfoejVagtBtn = document.getElementById("tilfoejVagt");
+      const rydVagterBtn = document.getElementById("rydVagter");
+      const vagtTabelBody = document.querySelector("#vagtTabel tbody");
+      const totalTimerLønDiv = document.getElementById("totalTimerLøn");
+
+      // --- Gem & hent data funktioner ---
       function gemData() {
         localStorage.setItem("timerUden", timerUdenInput.value);
         localStorage.setItem("timerMed", timerMedInput.value);
@@ -100,6 +221,8 @@
         localStorage.setItem("tillaeg", tillaegInput.value);
         localStorage.setItem("amb", ambInput.value);
         localStorage.setItem("skat", skatInput.value);
+
+        localStorage.setItem("vagter", JSON.stringify(vagter));
       }
 
       function hentData() {
@@ -109,10 +232,15 @@
         if (localStorage.getItem("tillaeg")) tillaegInput.value = localStorage.getItem("tillaeg");
         if (localStorage.getItem("amb")) ambInput.value = localStorage.getItem("amb");
         if (localStorage.getItem("skat")) skatInput.value = localStorage.getItem("skat");
+
+        if (localStorage.getItem("vagter")) {
+          vagter = JSON.parse(localStorage.getItem("vagter"));
+          opdaterVagtTabel();
+          opdaterTotal();
+        }
       }
 
-      hentData();
-
+      // --- Timelønsberegner ---
       beregnBtn.addEventListener("click", function () {
         const timerUden = parseFloat(timerUdenInput.value) || 0;
         const timerMed = parseFloat(timerMedInput.value) || 0;
@@ -152,8 +280,128 @@
         skatInput.value = "";
         resultatDiv.textContent = "";
         localStorage.clear();
+        vagter = [];
+        opdaterVagtTabel();
+        opdaterTotal();
       });
+
+      // --- Vagtregistrering ---
+      let vagter = [];
+
+      function opdaterVagtTabel() {
+        vagtTabelBody.innerHTML = "";
+        vagter.forEach((vagt, index) => {
+          const tr = document.createElement("tr");
+
+          const tdDato = document.createElement("td");
+          tdDato.textContent = vagt.dato;
+          tr.appendChild(tdDato);
+
+          const tdTimer = document.createElement("td");
+          tdTimer.textContent = vagt.timer.toFixed(2);
+          tr.appendChild(tdTimer);
+
+          const tdMedTillaeg = document.createElement("td");
+          tdMedTillaeg.textContent = vagt.medTillaeg ? "Ja" : "Nej";
+          tr.appendChild(tdMedTillaeg);
+
+          const tdSlet = document.createElement("td");
+          const sletBtn = document.createElement("button");
+          sletBtn.textContent = "Slet";
+          sletBtn.className = "deleteBtn";
+          sletBtn.addEventListener("click", () => {
+            vagter.splice(index, 1);
+            opdaterVagtTabel();
+            opdaterTotal();
+            gemData();
+          });
+          tdSlet.appendChild(sletBtn);
+          tr.appendChild(tdSlet);
+
+          vagtTabelBody.appendChild(tr);
+        });
+      }
+
+      function opdaterTotal() {
+        const timelon = parseFloat(timelonInput.value);
+        const tillaeg = parseFloat(tillaegInput.value) || 0;
+        const amb = ambInput.value.trim() === "" ? 8 : parseFloat(ambInput.value);
+        const skat = skatInput.value.trim() === "" ? 37 : parseFloat(skatInput.value);
+
+        if (isNaN(timelon)) {
+          totalTimerLønDiv.textContent = "Indtast en gyldig timeløn i beregneren for at se totals.";
+          return;
+        }
+
+        let totalTimer = 0;
+        let totalBrutto = 0;
+
+        vagter.forEach(vagt => {
+          totalTimer += vagt.timer;
+          if (vagt.medTillaeg) {
+            totalBrutto += vagt.timer * (timelon + tillaeg);
+          } else {
+            totalBrutto += vagt.timer * timelon;
+          }
+        });
+
+        const efterAMB = totalBrutto * (1 - amb / 100);
+        const efterSkat = efterAMB * (1 - skat / 100);
+
+        totalTimerLønDiv.innerHTML = `
+          Total arbejdstimer: ${totalTimer.toFixed(2)}<br>
+          Bruttoløn: ${totalBrutto.toFixed(2)} kr.<br>
+          Efter AM-bidrag (${amb}%): ${efterAMB.toFixed(2)} kr.<br>
+          Efter skat (${skat}%): <strong>${efterSkat.toFixed(2)} kr.</strong>
+        `;
+      }
+
+      tilfoejVagtBtn.addEventListener("click", () => {
+        const dato = datoInput.value;
+        const timer = parseFloat(timerVagtInput.value);
+        const medTillaeg = medTillaegSelect.value === "ja";
+
+        if (!dato) {
+          alert("Indtast venligst en dato.");
+          return;
+        }
+        if (isNaN(timer) || timer <= 0) {
+          alert("Indtast venligst et gyldigt antal timer.");
+          return;
+        }
+
+        vagter.push({ dato, timer, medTillaeg });
+        opdaterVagtTabel();
+        opdaterTotal();
+        gemData();
+
+        // Nulstil input
+        datoInput.value = "";
+        timerVagtInput.value = "";
+        medTillaegSelect.value = "nej";
+      });
+
+      rydVagterBtn.addEventListener("click", () => {
+        if (confirm("Er du sikker på du vil slette alle vagter?")) {
+          vagter = [];
+          opdaterVagtTabel();
+          opdaterTotal();
+          gemData();
+        }
+      });
+
+      // Når timeløn, tillæg, AM eller skat ændres, opdater totals i vagtfanen også
+      [timelonInput, tillaegInput, ambInput, skatInput].forEach(el => {
+        el.addEventListener("input", () => {
+          gemData();
+          opdaterTotal();
+        });
+      });
+
+      // Load data ved start
+      hentData();
     });
   </script>
+
 </body>
 </html>
