@@ -1,15 +1,77 @@
 <!DOCTYPE html>
 <html lang="da">
 <head>
-  <meta charset="UTF-8">
-  <title>Min Første Hjemmeside</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>Timelønsberegner</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 400px;
+      margin: 50px auto;
+      padding: 10px;
+      background-color: #f5f5f5;
+      border-radius: 8px;
+      text-align: center;
+    }
+    input {
+      padding: 8px;
+      margin: 8px 0;
+      width: 100%;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+      background-color: #007acc;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    #resultat {
+      margin-top: 20px;
+      font-weight: bold;
+      font-size: 18px;
+    }
+  </style>
 </head>
 <body>
-  <h1>Velkommen til min hjemmeside</h1>
-  <p>Dette er min allerførste side!</p>
-  <button onclick="visBesked()">Klik mig!</button>
+  <h1>Timelønsberegner</h1>
+  
+  <label for="timer">Antal timer:</label>
+  <input type="number" id="timer" min="0" step="0.1" placeholder="Indtast antal timer" />
+  
+  <label for="timelon">Timeløn (kr.):</label>
+  <input type="number" id="timelon" min="0" step="0.01" placeholder="Indtast timeløn" />
+  
+  <button id="beregn">Beregn løn</button>
+  
+  <div id="resultat"></div>
+  
+  <script>
+    const timerInput = document.getElementById('timer');
+    const timelonInput = document.getElementById('timelon');
+    const beregnBtn = document.getElementById('beregn');
+    const resultatDiv = document.getElementById('resultat');
 
-  <script src="script.js"></script>
+    beregnBtn.addEventListener('click', () => {
+      const timer = parseFloat(timerInput.value);
+      const timelon = parseFloat(timelonInput.value);
+
+      if (isNaN(timer) || timer < 0) {
+        resultatDiv.textContent = "Indtast et gyldigt antal timer.";
+        return;
+      }
+      if (isNaN(timelon) || timelon < 0) {
+        resultatDiv.textContent = "Indtast en gyldig timeløn.";
+        return;
+      }
+
+      const lon = timer * timelon;
+      resultatDiv.textContent = `Din løn er: ${lon.toFixed(2)} kr.`;
+    });
+  </script>
 </body>
 </html>
