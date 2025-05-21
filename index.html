@@ -53,7 +53,6 @@
   <button class="tab-btn active" onclick="skiftFane('beregner')">Timelønsberegner</button>
   <button class="tab-btn" onclick="skiftFane('vagt')">Vagtregistrering</button>
 
-  <!-- Timelønsberegner -->
   <div id="beregner" class="tab-content active">
     <h2>Timelønsberegner</h2>
     <label>Timer: <input type="number" id="timerBeregner" /></label><br />
@@ -67,7 +66,6 @@
     <p id="resultatBeregner"></p>
   </div>
 
-  <!-- Vagtregistrering -->
   <div id="vagt" class="tab-content">
     <h2>Vagtregistrering</h2>
 
@@ -103,7 +101,6 @@
   </div>
 
   <script>
-    // Fane-skifter
     function skiftFane(id) {
       document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
       document.querySelectorAll(".tab-content").forEach(tab => tab.classList.remove("active"));
@@ -111,7 +108,6 @@
       event.target.classList.add("active");
     }
 
-    // Beregner
     function beregnLoen() {
       const timer = parseFloat(document.getElementById("timerBeregner").value) || 0;
       const loen = parseFloat(document.getElementById("loenBeregner").value) || 0;
@@ -131,8 +127,7 @@
       `;
     }
 
-    // Vagtlogik
-    let vagter = [];
+    let vagter = JSON.parse(localStorage.getItem("vagter")) || [];
 
     function tilfoejVagt() {
       const dato = document.getElementById("dato").value;
@@ -151,16 +146,22 @@
       }
 
       vagter.push({ dato, timer, medTillaeg, timerMedTillaeg });
-      opdaterVagter();
+      gemOgOpdater();
     }
 
     function sletVagt(index) {
       vagter.splice(index, 1);
-      opdaterVagter();
+      gemOgOpdater();
     }
 
     function rydVagter() {
       vagter = [];
+      localStorage.removeItem("vagter");
+      opdaterVagter();
+    }
+
+    function gemOgOpdater() {
+      localStorage.setItem("vagter", JSON.stringify(vagter));
       opdaterVagter();
     }
 
@@ -208,6 +209,9 @@
         <strong>Efter skat (${skat}%):</strong> ${efterSkat.toFixed(2)} kr.
       `;
     }
+
+    // Kør første gang for at loade gemte vagter
+    opdaterVagter();
   </script>
 
 </body>
